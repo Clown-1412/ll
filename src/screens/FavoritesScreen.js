@@ -66,13 +66,30 @@ const FavoritesScreen = ({ navigation }) => {
   };
 
   const renderFavoriteItem = ({ item }) => (
-    <TouchableOpacity style={styles.cardContainer} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}>
-      <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
+    <TouchableOpacity
+      style={styles.cardContainer}
+      onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      accessibilityHint="Double tap to view product details"
+    >
+      <Image
+        source={{ uri: item.imageUrl }}
+        style={styles.cardImage}
+        accessibilityRole="image"
+        accessibilityLabel={`Image of ${item.name}`}
+      />
       <View style={styles.cardContent}>
         <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
         <View style={styles.cardFooter}>
             <Text style={styles.cardPrice}>{formatCurrency(item.price)}</Text>
-            <TouchableOpacity onPress={() => handleUnfavorite(item.id)}>
+            <TouchableOpacity
+              onPress={() => handleUnfavorite(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Remove from favorites"
+              accessibilityHint={`Double tap to remove ${item.name} from your favorites`}
+              accessibilityState={{ selected: true }}
+            >
                 <Text style={styles.favoriteIcon}>❤️</Text>
             </TouchableOpacity>
         </View>
@@ -85,7 +102,13 @@ const FavoritesScreen = ({ navigation }) => {
         <Text style={styles.emptyIcon}>💔</Text>
         <Text style={styles.emptyTitle}>Chưa có sản phẩm yêu thích</Text>
         <Text style={styles.emptySubtitle}>Hãy lướt và thả tim cho sản phẩm bạn thích nhé!</Text>
-        <TouchableOpacity style={styles.shopNowButton} onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity
+          style={styles.shopNowButton}
+          onPress={() => navigation.navigate('Home')}
+          accessibilityRole="button"
+          accessibilityLabel="Start shopping"
+          accessibilityHint="Double tap to go to the home screen and start shopping"
+        >
             <Text style={styles.shopNowButtonText}>Bắt đầu mua sắm</Text>
         </TouchableOpacity>
     </View>

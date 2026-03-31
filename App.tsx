@@ -5,6 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import { ThemeProvider } from './src/context/ThemeContext';
+
 // 1. Import các màn hình Tab 
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
@@ -54,42 +56,44 @@ function MainTabs() {
 // Luồng Navigation gốc bọc toàn bộ ứng dụng
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {/* Màn hình mặc định là cụm 5 Tabs */}
-        <Stack.Screen 
-          name="MainTabs" 
-          component={MainTabs} 
-          options={{ headerShown: false }} 
-        />
-        
-        {/* Các màn hình Stack được gọi từ bên trong Tabs */}
-        <Stack.Screen 
-          name="ProductListing" 
-          component={ProductListingScreen}
-          options={({ route }) => ({ title: route.params?.category || 'Sản phẩm' })}
-        />
-        <Stack.Screen 
-          name="ProductDetail" 
-          component={ProductDetailScreen} 
-          options={{ title: 'Chi tiết sản phẩm' }}
-        />
-        <Stack.Screen 
-          name="Checkout" 
-          component={CheckoutScreen} 
-          options={{ title: 'Thanh toán' }} 
-        />
-        <Stack.Screen 
-          name="OrderHistory" 
-          component={OrderHistoryScreen} 
-          options={{ title: 'Lịch sử đơn hàng' }} 
-        />
-        <Stack.Screen 
-          name="Settings" 
-          component={SettingsScreen} 
-          options={{ title: 'Cài đặt' }} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          {/* Màn hình mặc định là cụm 5 Tabs */}
+          <Stack.Screen 
+            name="MainTabs" 
+            component={MainTabs} 
+            options={{ headerShown: false }} 
+          />
+          
+          {/* Các màn hình Stack được gọi từ bên trong Tabs */}
+          <Stack.Screen 
+            name="ProductListing" 
+            component={ProductListingScreen}
+            options={({ route }) => ({ title: route.params?.category || 'Sản phẩm' })}
+          />
+          <Stack.Screen 
+            name="ProductDetail" 
+            component={ProductDetailScreen} 
+            options={{ title: 'Chi tiết sản phẩm' }}
+          />
+          <Stack.Screen 
+            name="Checkout" 
+            component={CheckoutScreen} 
+            options={{ title: 'Thanh toán' }} 
+          />
+          <Stack.Screen 
+            name="OrderHistory" 
+            component={OrderHistoryScreen} 
+            options={{ title: 'Lịch sử đơn hàng' }} 
+          />
+          <Stack.Screen 
+            name="Settings" 
+            component={SettingsScreen} 
+            options={{ title: 'Cài đặt' }} 
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }

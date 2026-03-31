@@ -75,6 +75,9 @@ const OrderHistoryScreen = ({ navigation }) => {
             <TouchableOpacity 
                 style={styles.card} 
                 onPress={() => Alert.alert(`Chi tiết đơn hàng #${item.id}`, 'Chức năng này sẽ được phát triển sau.')}
+                accessibilityRole="button"
+                accessibilityLabel={`Order number ${item.id}`}
+                accessibilityHint="Double tap to view order details"
             >
                 <View style={styles.cardHeader}>
                     <Text style={styles.orderId}>Đơn hàng #{item.id}</Text>
@@ -111,6 +114,9 @@ const OrderHistoryScreen = ({ navigation }) => {
                         key={tab} 
                         style={[styles.tab, activeTab === tab && styles.tabActive]} 
                         onPress={() => setActiveTab(tab)}
+                        accessibilityRole="tab"
+                        accessibilityLabel={tab}
+                        accessibilityState={{ selected: activeTab === tab }}
                     >
                         <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
                     </TouchableOpacity>

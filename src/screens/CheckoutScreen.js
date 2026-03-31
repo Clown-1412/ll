@@ -100,7 +100,12 @@ const CheckoutScreen = ({ navigation }) => {
           <View>
             <Text style={styles.addressName}>{MOCK_DATA.shippingAddress.name} | {MOCK_DATA.shippingAddress.phone}</Text>
             <Text style={styles.addressText}>{MOCK_DATA.shippingAddress.address}</Text>
-            <TouchableOpacity style={styles.changeButton}>
+            <TouchableOpacity
+              style={styles.changeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Change shipping address"
+              accessibilityHint="Double tap to change your shipping address"
+            >
                 <Text style={styles.changeButtonText}>Thay đổi</Text>
             </TouchableOpacity>
           </View>
@@ -111,7 +116,12 @@ const CheckoutScreen = ({ navigation }) => {
           <View>
             {MOCK_DATA.cartItems.map(item => (
               <View key={item.id} style={styles.itemContainer}>
-                <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.itemImage}
+                  accessibilityRole="image"
+                  accessibilityLabel={`Image of ${item.name}`}
+                />
                 <View style={styles.itemDetails}>
                   <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
@@ -126,7 +136,12 @@ const CheckoutScreen = ({ navigation }) => {
         {renderSection('Phương thức thanh toán', '💳', (
             <View style={styles.paymentContainer}>
                 <Text style={styles.paymentText}>{MOCK_DATA.paymentMethod.description}</Text>
-                <TouchableOpacity style={styles.changeButton}>
+                <TouchableOpacity
+                  style={styles.changeButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Change payment method"
+                  accessibilityHint="Double tap to change your payment method"
+                >
                     <Text style={styles.changeButtonText}>Thay đổi</Text>
                 </TouchableOpacity>
             </View>
@@ -148,7 +163,13 @@ const CheckoutScreen = ({ navigation }) => {
           <Text style={styles.finalTotalLabel}>Tổng cộng</Text>
           <Text style={styles.finalTotalValue}>{formatCurrency(total)}</Text>
         </View>
-        <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
+        <TouchableOpacity
+          style={styles.placeOrderButton}
+          onPress={handlePlaceOrder}
+          accessibilityRole="button"
+          accessibilityLabel="Place order"
+          accessibilityHint={`Double tap to place your order. Total amount is ${formatCurrency(total)}`}
+        >
           <Text style={styles.placeOrderButtonText}>Đặt hàng</Text>
         </TouchableOpacity>
       </View>

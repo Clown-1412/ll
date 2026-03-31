@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import ProductListItem from '../components/ProductListItem';
 import {
   StyleSheet,
   View,
@@ -12,7 +13,19 @@ import {
   TextInput,
   Switch,
   Platform,
+  Dimensions,
 } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+// Estimate item height for getItemLayout
+// Item width is approx (screenWidth / 2 - 16) due to flex: 0.5 and margins.
+// Image has aspectRatio: 1, so height is similar to width.
+// Total height: ImageHeight + NameHeight + PriceHeight + ActionsHeight + Margins
+// (screenWidth / 2 - 16) + 36 + 20 + 30 + 32 = (screenWidth / 2) + 102
+// For a width of ~400, this is ~302. We'll use a fixed 320 for safety.
+// NOTE: This is an estimation. For pixel-perfect layout, a more precise calculation or a fixed height from the design is needed.
+const ITEM_HEIGHT = 320;
 
 // --- MOCK DATA ---
 const MOCK_CATEGORIES = ['Áo thun', 'Quần jeans', 'Giày sneaker', 'Phụ kiện'];
@@ -140,26 +153,41 @@ const ProductListingScreen = ({ route, navigation }) => {
     });
   };
 
-  const renderProductItem = ({ item }) => (
-    <TouchableOpacity style={styles.cardContainer} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}>
-        <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
-        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.cardPrice}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</Text>
-        <View style={styles.cardActions}>
-            <TouchableOpacity>{item.isFavorite ? '❤️' : '🤍'}</TouchableOpacity>
-            <TouchableOpacity style={styles.addToCartBtn}><Text style={styles.addToCartIcon}>🛒</Text></TouchableOpacity>
-        </View>
-    </TouchableOpacity>
+  const renderProductItem = ({ item, index }) => (
+    <ProductListItem
+      item={item}
+      index={index}
+      navigation={navigation}
+      screen="ProductListingScreen"
+    />
   );
+
+  const getItemLayout = (data, index) => ({
+    length: ITEM_HEIGHT,
+    offset: ITEM_HEIGHT * (index / 2),
+    index,
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Toolbar */}
       <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.toolbarButton} onPress={() => setFilterModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.toolbarButton}
+          onPress={() => setFilterModalVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Filter products"
+          accessibilityHint="Double tap to open product filters"
+        >
           <Text>⚙️ Lọc</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolbarButton} onPress={() => setSortModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.toolbarButton}
+          onPress={() => setSortModalVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Sort products"
+          accessibilityHint={`Double tap to change sorting. Current sort is ${activeSort}`}
+        >
           <Text>⇅ {activeSort}</Text>
         </TouchableOpacity>
       </View>
@@ -179,6 +207,12 @@ const ProductListingScreen = ({ route, navigation }) => {
             <Text style={styles.emptyText}>😞 Không có sản phẩm nào</Text>
           </View>
         }
+        // Performance Optimizations
+        removeClippedSubviews={true}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={21}
+        getItemLayout={getItemLayout}
       />
 
       {/* Filter Modal */}
@@ -194,14 +228,35 @@ const ProductListingScreen = ({ route, navigation }) => {
             {/* Price Range */}
             <Text style={styles.filterLabel}>Khoảng giá</Text>
             <View style={styles.priceInputContainer}>
-              <TextInput placeholder="Tối thiểu" style={styles.priceInput} keyboardType="numeric" value={filters.priceMin} onChangeText={(text) => setFilters({...filters, priceMin: text})} />
+              <TextInput
+                placeholder="Tối thiểu"
+                style={styles.priceInput}
+                keyboardType="numeric"
+                value={filters.priceMin}
+                onChangeText={(text) => setFilters({...filters, priceMin: text})}
+                accessibilityLabel="Minimum price input"
+              />
               <Text> - </Text>
-              <TextInput placeholder="Tối đa" style={styles.priceInput} keyboardType="numeric" value={filters.priceMax} onChangeText={(text) => setFilters({...filters, priceMax: text})} />
+              <TextInput
+                placeholder="Tối đa"
+                style={styles.priceInput}
+                keyboardType="numeric"
+                value={filters.priceMax}
+                onChangeText={(text) => setFilters({...filters, priceMax: text})}
+                accessibilityLabel="Maximum price input"
+              />
             </View>
             {/* Categories */}
             <Text style={styles.filterLabel}>Danh mục</Text>
             {MOCK_CATEGORIES.map(cat => (
-              <TouchableOpacity key={cat} style={styles.checkboxContainer} onPress={() => toggleCategoryFilter(cat)}>
+              <TouchableOpacity
+                key={cat}
+                style={styles.checkboxContainer}
+                onPress={() => toggleCategoryFilter(cat)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: filters.selectedCategories.includes(cat) }}
+                accessibilityLabel={cat}
+              >
                 <Text>{filters.selectedCategories.includes(cat) ? '✅' : '⬜'}</Text>
                 <Text style={styles.checkboxLabel}>{cat}</Text>
               </TouchableOpacity>
@@ -209,10 +264,20 @@ const ProductListingScreen = ({ route, navigation }) => {
             {/* In Stock */}
             <View style={styles.switchContainer}>
                 <Text style={styles.filterLabel}>Chỉ hiện sản phẩm còn hàng</Text>
-                <Switch value={filters.inStockOnly} onValueChange={(value) => setFilters({...filters, inStockOnly: value})} />
+                <Switch
+                  value={filters.inStockOnly}
+                  onValueChange={(value) => setFilters({...filters, inStockOnly: value})}
+                  accessibilityLabel="Show in-stock products only"
+                  accessibilityState={{ checked: filters.inStockOnly }}
+                />
             </View>
 
-            <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
+            <TouchableOpacity
+              style={styles.applyButton}
+              onPress={handleApplyFilters}
+              accessibilityRole="button"
+              accessibilityLabel="Apply filters"
+            >
                 <Text style={styles.applyButtonText}>Áp dụng</Text>
             </TouchableOpacity>
           </View>
@@ -230,7 +295,14 @@ const ProductListingScreen = ({ route, navigation }) => {
           <View style={[styles.modalContent, styles.sortModal]}>
             <Text style={styles.modalTitle}>Sắp xếp theo</Text>
             {Object.values(SORT_OPTIONS).map(opt => (
-              <TouchableOpacity key={opt} style={styles.sortOption} onPress={() => handleSelectSort(opt)}>
+              <TouchableOpacity
+                key={opt}
+                style={styles.sortOption}
+                onPress={() => handleSelectSort(opt)}
+                accessibilityRole="button"
+                accessibilityLabel={`Sort by ${opt}`}
+                accessibilityState={{ selected: activeSort === opt }}
+              >
                 <Text style={[styles.sortOptionText, activeSort === opt && styles.sortOptionTextActive]}>{opt}</Text>
               </TouchableOpacity>
             ))}

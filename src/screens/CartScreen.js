@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
+import CartItem from '../components/CartItem';
+import { useTheme } from '../context/ThemeContext';
 
 // --- MOCK DATA ---
 const MOCK_CART_ITEMS = [
@@ -39,15 +41,6 @@ const MOCK_CART_ITEMS = [
 
 const SHIPPING_FEE = 30000;
 
-const COLORS = {
-  primary: '#d9534f', // A nice red for e-commerce actions
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  lightGray: '#cccccc',
-  darkGray: '#888888',
-};
-
 // --- HELPER FUNCTIONS ---
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -55,9 +48,11 @@ const formatCurrency = (value) => {
 
 // --- MAIN COMPONENT ---
 const CartScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
 
-  const handleUpdateQuantity = (itemId, amount) => {
+  const handleUpdateQuantity = useCallback((itemId, amount) => {
     setCartItems(prevItems => {
       const newItems = prevItems.map(item => {
         if (item.id === itemId) {
@@ -68,53 +63,34 @@ const CartScreen = ({ navigation }) => {
       });
       return newItems;
     });
-  };
+  }, []);
 
-  const handleRemoveItem = (itemId) => {
+  const handleRemoveItem = useCallback((itemId) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-  };
+  }, []);
+
+  const navigateToHome = useCallback(() => {
+    navigation.navigate('Home');
+  }, [navigation]);
+
+  const handleCheckout = useCallback(() => {
+    // Navigate to checkout screen
+    navigation.navigate('CheckoutScreen');
+  }, [navigation]);
   
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [cartItems]);
   
-  const total = subtotal + SHIPPING_FEE;
+  const total = useMemo(() => subtotal + SHIPPING_FEE, [subtotal]);
 
-  const renderCartItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.itemShop}>Cung cấp bởi: {item.shop}</Text>
-        <Text style={styles.itemPrice}>{formatCurrency(item.price)}</Text>
-        <View style={styles.itemActions}>
-            <View style={styles.quantitySelector}>
-                <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, -1)} style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantityText}>{item.quantity}</Text>
-                <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, 1)} style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={() => handleRemoveItem(item.id)}>
-                <Text style={styles.removeIcon}>🗑️</Text>
-            </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderEmptyCart = () => (
-    <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>🛒</Text>
-        <Text style={styles.emptyTitle}>Giỏ hàng của bạn đang trống</Text>
-        <Text style={styles.emptySubtitle}>Hãy bắt đầu mua sắm ngay thôi!</Text>
-        <TouchableOpacity style={styles.shopNowButton} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.shopNowButtonText}>Mua sắm ngay</Text>
-        </TouchableOpacity>
-    </View>
-  );
+  const renderCartItem = useCallback(({ item }) => (
+    <CartItem
+      item={item}
+      onUpdateQuantity={handleUpdateQuantity}
+      onRemoveItem={handleRemoveItem}
+    />
+  ), [handleUpdateQuantity, handleRemoveItem]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -122,7 +98,7 @@ const CartScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Giỏ hàng ({cartItems.length})</Text>
       </View>
       
-      {cartItems.length === 0 ? renderEmptyCart() : (
+      {cartItems.length === 0 ? <EmptyCart onShopNow={navigateToHome} /> : (
         <>
             <FlatList
                 data={cartItems}
@@ -131,199 +107,161 @@ const CartScreen = ({ navigation }) => {
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
             />
-            <View style={styles.summaryContainer}>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Tạm tính</Text>
-                    <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Phí vận chuyển</Text>
-                    <Text style={styles.summaryValue}>{formatCurrency(SHIPPING_FEE)}</Text>
-                </View>
-                <View style={styles.separator} />
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryTotalLabel}>Tổng cộng</Text>
-                    <Text style={styles.summaryTotalValue}>{formatCurrency(total)}</Text>
-                </View>
-                <TouchableOpacity style={styles.checkoutButton}>
-                    <Text style={styles.checkoutButtonText}>Tiến hành thanh toán</Text>
-                </TouchableOpacity>
-            </View>
+            <CartSummary subtotal={subtotal} total={total} onCheckout={handleCheckout} />
         </>
       )}
     </SafeAreaView>
   );
 };
 
+const EmptyCart = React.memo(({ onShopNow }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  return (
+    <View style={styles.emptyContainer}>
+        <Text style={styles.emptyIcon}>🛒</Text>
+        <Text style={styles.emptyTitle}>Giỏ hàng của bạn đang trống</Text>
+        <Text style={styles.emptySubtitle}>Hãy bắt đầu mua sắm ngay thôi!</Text>
+        <TouchableOpacity
+          style={styles.shopNowButton}
+          onPress={onShopNow}
+          accessibilityRole="button"
+          accessibilityLabel="Shop now"
+          accessibilityHint="Double tap to start shopping"
+        >
+            <Text style={styles.shopNowButtonText}>Mua sắm ngay</Text>
+        </TouchableOpacity>
+    </View>
+  );
+});
+
+const CartSummary = React.memo(({ subtotal, total, onCheckout }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  return (
+    <View style={styles.summaryContainer}>
+        <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Tạm tính</Text>
+            <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Phí vận chuyển</Text>
+            <Text style={styles.summaryValue}>{formatCurrency(SHIPPING_FEE)}</Text>
+        </View>
+        <View style={styles.separator} />
+        <View style={styles.summaryRow}>
+            <Text style={styles.summaryTotalLabel}>Tổng cộng</Text>
+            <Text style={styles.summaryTotalValue}>{formatCurrency(total)}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.checkoutButton}
+          onPress={onCheckout}
+          accessibilityRole="button"
+          accessibilityLabel="Proceed to checkout"
+          accessibilityHint={`Double tap to proceed to checkout. Total amount is ${formatCurrency(total)}`}
+        >
+            <Text style={styles.checkoutButtonText}>Tiến hành thanh toán</Text>
+        </TouchableOpacity>
+    </View>
+  );
+});
+
 // --- STYLESHEET ---
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.background,
   },
   header: {
-    padding: 16,
-    backgroundColor: COLORS.white,
+    padding: theme.spacing.m,
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: theme.colors.border,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    ...theme.typography.h2,
+    color: theme.colors.text,
     textAlign: 'center',
   },
   listContainer: {
-    padding: 16,
+    padding: theme.spacing.m,
   },
   // Empty State
   emptyContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 20,
+      padding: theme.spacing.l,
   },
   emptyIcon: {
       fontSize: 80,
-      marginBottom: 20,
+      marginBottom: theme.spacing.l,
   },
   emptyTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: COLORS.text,
+      ...theme.typography.h3,
+      color: theme.colors.text,
   },
   emptySubtitle: {
-      fontSize: 16,
-      color: COLORS.darkGray,
-      marginTop: 8,
-      marginBottom: 24,
+      ...theme.typography.body,
+      color: theme.colors.textSecondary,
+      marginTop: theme.spacing.s,
+      marginBottom: theme.spacing.l,
       textAlign: 'center',
   },
   shopNowButton: {
-      backgroundColor: COLORS.primary,
-      paddingHorizontal: 40,
-      paddingVertical: 12,
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: theme.spacing.xl,
+      paddingVertical: theme.spacing.m,
       borderRadius: 30,
   },
   shopNowButtonText: {
-      color: COLORS.white,
-      fontSize: 16,
+      ...theme.typography.body,
+      color: theme.colors.card,
       fontWeight: 'bold',
-  },
-  // Cart Item
-  itemContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  itemImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  itemDetails: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  itemShop: {
-    fontSize: 13,
-    color: COLORS.darkGray,
-    marginVertical: 4,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  itemActions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: 8,
-  },
-  quantitySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    borderRadius: 8,
-  },
-  quantityButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  quantityButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  quantityText: {
-    fontSize: 16,
-    fontWeight: '600',
-    paddingHorizontal: 16,
-  },
-  removeIcon: {
-      fontSize: 24,
-      color: COLORS.darkGray,
   },
   // Summary Footer
   summaryContainer: {
-    backgroundColor: COLORS.white,
-    padding: 16,
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.m,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: theme.colors.border,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: theme.spacing.m,
   },
   summaryLabel: {
-    fontSize: 16,
-    color: COLORS.darkGray,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
   },
   summaryValue: {
-    fontSize: 16,
-    color: COLORS.text,
+    ...theme.typography.body,
+    color: theme.colors.text,
   },
   separator: {
     height: 1,
-    backgroundColor: '#e0e0e0',
-    marginVertical: 8,
+    backgroundColor: theme.colors.border,
+    marginVertical: theme.spacing.s,
   },
   summaryTotalLabel: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    ...theme.typography.h3,
+    color: theme.colors.text,
   },
   summaryTotalValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    ...theme.typography.h2,
+    color: theme.colors.primary,
   },
   checkoutButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 16,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.spacing.s,
+    paddingVertical: theme.spacing.m,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: theme.spacing.m,
   },
   checkoutButtonText: {
-    color: COLORS.white,
-    fontSize: 18,
+    ...theme.typography.body,
+    color: theme.colors.card,
     fontWeight: 'bold',
   },
 });

@@ -18,24 +18,19 @@ import {
 } from 'react-native';
 
 export default function ProfileScreen({ navigation }) {
-  // Trạng thái điều hướng giữa Xem Profile và Chỉnh sửa Profile
   const [isEditing, setIsEditing] = useState(false);
-
-  // States quản lý dữ liệu người dùng
   const [name, setName] = useState('Nguyễn Văn A');
   const [email, setEmail] = useState('nguyenvana@email.com');
   const [phone, setPhone] = useState('0123456789');
   const [address, setAddress] = useState('Hồ Chí Minh, Việt Nam');
+  const [errors, setErrors] = useState({});
   
   const [isNotiEnabled, setIsNotiEnabled] = useState(true);
   const [isPublicEmail, setIsPublicEmail] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [theme, setTheme] = useState('true');
 
-
-  // Danh sách settings đã được bổ sung đầy đủ
   const settingsList = [
     { id: '0', title: 'Chỉnh sửa Profile', icon: '✏️', action: () => setIsEditing(true) },
     { id: '1', title: 'Lịch sử đơn hàng', icon: '📦', action: () => navigation.navigate('OrderHistory') },
@@ -49,21 +44,50 @@ export default function ProfileScreen({ navigation }) {
     { id: '9', title: 'Về ứng dụng', icon: 'ℹ️', action: () => {} },
   ];
 
-  // Hàm xử lý lưu thông tin
+  const validateForm = () => {
+    const newErrors = {};
+    if (!name) newErrors.name = 'Họ tên không được để trống.';
+    if (!email) newErrors.email = 'Email không được để trống.';
+    if (!phone) newErrors.phone = 'Số điện thoại không được để trống.';
+    if (!address) newErrors.address = 'Địa chỉ không được để trống.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = () => {
+    if (!validateForm()) {
+      return;
+    }
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       Alert.alert('Thành công', 'Thông tin của bạn đã được cập nhật.');
-      setIsEditing(false); // Lưu xong thì quay lại màn hình Profile chính
+      setIsEditing(false);
     }, 1500);
   };
 
-  // Hàm xử lý hiển thị modal đăng xuất
   const handleLogout = () => {
     setModalVisible(true);
   };
 
+  const handleConfirmLogout = () => {
+    setModalVisible(false);
+    // reset profile data to default/empty state for logout
+    setName('');
+    setEmail('');
+    setPhone('');
+    setAddress('');
+    setIsNotiEnabled(false);
+    setIsPublicEmail(false);
+
+    // reset navigation stack to main entry point so user is effectively logged out
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainTabs' }],
+    });
+
+    Alert.alert('Đã đăng xuất', 'Bạn đã đăng xuất thành công.');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -75,51 +99,112 @@ export default function ProfileScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           
-          {/* Header luôn hiển thị */}
           <View style={styles.header}>
             <Image 
               source={require('../img/avatar.png')}
-              style={styles.avatar} 
+              style={styles.avatar}
+              accessibilityRole="image"
+              accessibilityLabel="User avatar"
             />
             <Text style={styles.nameText}>{name}</Text>
             <Text style={styles.emailText}>{email}</Text>
             {!isEditing && <Text style={styles.bioText}>Lập trình viên React Native</Text>}
           </View>
 
-          {/* RENDER CÓ ĐIỀU KIỆN: Nếu đang chỉnh sửa thì hiện Form, ngược lại hiện Settings */}
           {isEditing ? (
-            /* ================= FORM CHỈNH SỬA THÔNG TIN ================= */
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Chỉnh sửa thông tin</Text>
               
-              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Tên" />
-              <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" />
-              <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="Số điện thoại" keyboardType="phone-pad" />
-              <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="Địa chỉ" />
+              <Text style={styles.inputLabel}>Họ và tên</Text>
+              <TextInput 
+                style={[styles.input, errors.name && styles.inputError]} 
+                value={name} 
+                onChangeText={setName} 
+                placeholder="Nhập họ và tên" 
+                accessibilityLabel="Name input"
+                accessibilityHint="Input for your full name"
+              />
+              {errors.name && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.name}</Text>}
+              
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput 
+                style={[styles.input, errors.email && styles.inputError]} 
+                value={email} 
+                onChangeText={setEmail} 
+                placeholder="Nhập email" 
+                keyboardType="email-address" 
+                accessibilityLabel="Email input"
+                accessibilityHint="Input for your email address"
+              />
+              {errors.email && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.email}</Text>}
+
+              <Text style={styles.inputLabel}>Số điện thoại</Text>
+              <TextInput 
+                style={[styles.input, errors.phone && styles.inputError]} 
+                value={phone} 
+                onChangeText={setPhone} 
+                placeholder="Nhập số điện thoại" 
+                keyboardType="phone-pad" 
+                accessibilityLabel="Phone number input"
+                accessibilityHint="Input for your phone number"
+              />
+              {errors.phone && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.phone}</Text>}
+              
+              <Text style={styles.inputLabel}>Địa chỉ</Text>
+              <TextInput 
+                style={[styles.input, errors.address && styles.inputError]} 
+                value={address} 
+                onChangeText={setAddress} 
+                placeholder="Nhập địa chỉ" 
+                accessibilityLabel="Address input"
+                accessibilityHint="Input for your address"
+              />
+              {errors.address && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.address}</Text>}
 
               <View style={styles.switchRow}>
                 <Text style={styles.switchLabel}>Nhận thông báo</Text>
-                <Switch value={isNotiEnabled} onValueChange={setIsNotiEnabled} />
+                <Switch
+                  value={isNotiEnabled}
+                  onValueChange={setIsNotiEnabled}
+                  accessibilityLabel="Enable notifications toggle"
+                  accessibilityState={{ checked: isNotiEnabled }}
+                  accessibilityHint={isNotiEnabled ? "Double tap to disable notifications" : "Double tap to enable notifications"}
+                />
               </View>
               <View style={styles.switchRow}>
                 <Text style={styles.switchLabel}>Hiển thị email công khai</Text>
-                <Switch value={isPublicEmail} onValueChange={setIsPublicEmail} />
+                <Switch
+                  value={isPublicEmail}
+                  onValueChange={setIsPublicEmail}
+                  accessibilityLabel="Show email publicly toggle"
+                  accessibilityState={{ checked: isPublicEmail }}
+                  accessibilityHint={isPublicEmail ? "Double tap to hide your email" : "Double tap to show your email publicly"}
+                />
               </View>
 
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={[styles.button, styles.saveBtn]} onPress={handleSave}>
+                <TouchableOpacity
+                  style={[styles.button, styles.saveBtn]}
+                  onPress={handleSave}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save changes"
+                  accessibilityHint="Double tap to save your profile changes"
+                >
                   <Text style={styles.btnTextSave}>Lưu thay đổi</Text>
                 </TouchableOpacity>
-                {/* Nút Hủy thay cho nút Đăng xuất */}
-                <TouchableOpacity style={[styles.button, styles.cancelBtn]} onPress={() => setIsEditing(false)}>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelBtn]}
+                  onPress={() => setIsEditing(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancel editing"
+                  accessibilityHint="Double tap to discard your changes and go back"
+                >
                   <Text style={styles.btnTextCancel}>Hủy</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
-            /* ================= MÀN HÌNH SETTINGS CHÍNH ================= */
             <>
-              {/* Settings List */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Cài đặt</Text>
                 {settingsList.map((item) => (
@@ -127,6 +212,9 @@ export default function ProfileScreen({ navigation }) {
                     key={item.id} 
                     style={styles.settingItem}
                     onPress={item.action}
+                    accessibilityRole="button"
+                    accessibilityLabel={item.title}
+                    accessibilityHint={`Double tap to go to ${item.title}`}
                   >
                     <Text style={styles.settingIcon}>{item.icon}</Text>
                     <Text style={styles.settingTitle}>{item.title}</Text>
@@ -135,8 +223,13 @@ export default function ProfileScreen({ navigation }) {
                 ))}
               </View>
 
-              {/* Nút Đăng xuất được đặt bên dưới Settings Section */}
-              <TouchableOpacity style={styles.mainLogoutBtn} onPress={handleLogout}>
+              <TouchableOpacity
+                style={styles.mainLogoutBtn}
+                onPress={handleLogout}
+                accessibilityRole="button"
+                accessibilityLabel="Logout"
+                accessibilityHint="Double tap to logout from your account"
+              >
                 <Text style={styles.mainLogoutText}>Đăng xuất</Text>
               </TouchableOpacity>
             </>
@@ -145,25 +238,32 @@ export default function ProfileScreen({ navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Modal Xác nhận đăng xuất */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
+        accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Xác nhận</Text>
             <Text style={styles.modalText}>Bạn có chắc chắn muốn đăng xuất không?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalBtn} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => setModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel logout"
+              >
                 <Text style={styles.modalBtnText}>Hủy</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalBtn, styles.modalBtnConfirm]} onPress={() => {
-                setModalVisible(false);
-                Alert.alert('Đã đăng xuất');
-              }}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnConfirm]}
+                onPress={handleConfirmLogout}
+                accessibilityRole="button"
+                accessibilityLabel="Confirm logout"
+              >
                 <Text style={[styles.modalBtnText, {color: '#ffffff'}]}>Đăng xuất</Text>
               </TouchableOpacity>
             </View>
@@ -171,9 +271,12 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* Activity Indicator Overlay */}
       {isLoading && (
-        <View style={styles.loadingOverlay}>
+        <View 
+          style={styles.loadingOverlay}
+          accessibilityViewIsModal={true}
+          accessibilityLiveRegion="polite"
+        >
           <ActivityIndicator size="large" color="#0066cc" />
           <Text style={styles.loadingText}>Đang lưu thay đổi...</Text>
         </View>
@@ -202,7 +305,10 @@ const styles = StyleSheet.create({
     }),
   },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
+  inputLabel: { fontSize: 16, color: '#333', marginBottom: 5, fontWeight: '600' },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 5, fontSize: 16 },
+  inputError: { borderColor: '#ff3b30' },
+  errorText: { color: '#ff3b30', fontSize: 14, marginBottom: 10, },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
   switchLabel: { fontSize: 16, color: '#333' },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
@@ -212,13 +318,11 @@ const styles = StyleSheet.create({
   btnTextSave: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   btnTextCancel: { color: '#666', fontSize: 16, fontWeight: 'bold' },
   
-  // Styles cho danh sách cài đặt
   settingItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
   settingIcon: { fontSize: 20, marginRight: 15 },
   settingTitle: { flex: 1, fontSize: 16, color: '#333' },
   settingArrow: { fontSize: 20, color: '#ccc' },
   
-  // Style cho nút Đăng xuất ở màn hình chính
   mainLogoutBtn: {
     backgroundColor: '#fff',
     padding: 15,
@@ -230,7 +334,6 @@ const styles = StyleSheet.create({
   },
   mainLogoutText: { color: '#ff3b30', fontSize: 16, fontWeight: 'bold' },
 
-  // Styles cho Modal và Loading
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
   modalContent: { backgroundColor: '#fff', width: '80%', borderRadius: 12, padding: 20, alignItems: 'center' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
