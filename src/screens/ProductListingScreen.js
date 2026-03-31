@@ -1,30 +1,18 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import ProductListItem from '../components/ProductListItem';
 import {
-  StyleSheet,
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
   Modal,
   TextInput,
   Switch,
-  Platform,
-  Dimensions,
 } from 'react-native';
 
-const { width: screenWidth } = Dimensions.get('window');
-
 // Estimate item height for getItemLayout
-// Item width is approx (screenWidth / 2 - 16) due to flex: 0.5 and margins.
-// Image has aspectRatio: 1, so height is similar to width.
-// Total height: ImageHeight + NameHeight + PriceHeight + ActionsHeight + Margins
-// (screenWidth / 2 - 16) + 36 + 20 + 30 + 32 = (screenWidth / 2) + 102
-// For a width of ~400, this is ~302. We'll use a fixed 320 for safety.
-// NOTE: This is an estimation. For pixel-perfect layout, a more precise calculation or a fixed height from the design is needed.
 const ITEM_HEIGHT = 320;
 
 // --- MOCK DATA ---
@@ -48,15 +36,6 @@ const SORT_OPTIONS = {
   PRICE_DESC: 'Giá giảm dần',
 };
 
-const COLORS = {
-  primary: '#007bff',
-  background: '#f8f9fa',
-  white: '#ffffff',
-  text: '#343a40',
-  lightGray: '#ced4da',
-  darkGray: '#6c757d',
-};
-
 // --- MAIN COMPONENT ---
 const ProductListingScreen = ({ route, navigation }) => {
   const [products, setProducts] = useState([]);
@@ -74,7 +53,6 @@ const ProductListingScreen = ({ route, navigation }) => {
   });
   const [activeSort, setActiveSort] = useState(SORT_OPTIONS.LATEST);
   
-  // This effect runs once to apply the initial category filter from navigation
   useEffect(() => {
     const initialCategory = route.params?.category;
     if (initialCategory) {
@@ -82,7 +60,6 @@ const ProductListingScreen = ({ route, navigation }) => {
     }
   }, [route.params?.category]);
 
-  // Áp dụng bộ lọc và sắp xếp
   const processedProducts = useMemo(() => {
     let filtered = MOCK_PRODUCTS.filter(p => {
       const priceMin = parseFloat(filters.priceMin);
@@ -97,39 +74,25 @@ const ProductListingScreen = ({ route, navigation }) => {
     });
     
     switch (activeSort) {
-      case SORT_OPTIONS.PRICE_ASC:
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case SORT_OPTIONS.PRICE_DESC:
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case SORT_OPTIONS.BEST_SELLER:
-         filtered.sort((a, b) => b.soldCount - a.soldCount);
-        break;
+      case SORT_OPTIONS.PRICE_ASC: filtered.sort((a, b) => a.price - b.price); break;
+      case SORT_OPTIONS.PRICE_DESC: filtered.sort((a, b) => b.price - a.price); break;
+      case SORT_OPTIONS.BEST_SELLER: filtered.sort((a, b) => b.soldCount - a.soldCount); break;
       case SORT_OPTIONS.LATEST:
-      default:
-        filtered.sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
-        break;
+      default: filtered.sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime()); break;
     }
 
     return filtered;
   }, [filters, activeSort]);
 
-  // This effect syncs the visible products with the full processed list
   useEffect(() => {
     setProducts(processedProducts.slice(0, 10));
     setPage(1);
   }, [processedProducts]);
 
-  const handleApplyFilters = () => {
-    setFilterModalVisible(false);
-    // Products will be updated by the useEffect listening to processedProducts
-  };
-  
+  const handleApplyFilters = () => setFilterModalVisible(false);
   const handleSelectSort = (option) => {
     setActiveSort(option);
     setSortModalVisible(false);
-    // Products will be updated by the useEffect listening to processedProducts
   };
 
   const handleLoadMore = useCallback(() => {
@@ -145,12 +108,12 @@ const ProductListingScreen = ({ route, navigation }) => {
   }, [page, loadingMore, products, processedProducts]);
 
   const toggleCategoryFilter = (category) => {
-    setFilters(prev => {
-      const newCategories = prev.selectedCategories.includes(category)
+    setFilters(prev => ({
+      ...prev,
+      selectedCategories: prev.selectedCategories.includes(category)
         ? prev.selectedCategories.filter(c => c !== category)
-        : [...prev.selectedCategories, category];
-      return { ...prev, selectedCategories: newCategories };
-    });
+        : [...prev.selectedCategories, category]
+    }));
   };
 
   const renderProductItem = ({ item, index }) => (
@@ -169,25 +132,13 @@ const ProductListingScreen = ({ route, navigation }) => {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       {/* Toolbar */}
-      <View style={styles.toolbar}>
-        <TouchableOpacity
-          style={styles.toolbarButton}
-          onPress={() => setFilterModalVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Filter products"
-          accessibilityHint="Double tap to open product filters"
-        >
+      <View className="flex-row justify-around py-3 bg-white border-b border-gray-200">
+        <TouchableOpacity className="flex-row items-center" onPress={() => setFilterModalVisible(true)}>
           <Text>⚙️ Lọc</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.toolbarButton}
-          onPress={() => setSortModalVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Sort products"
-          accessibilityHint={`Double tap to change sorting. Current sort is ${activeSort}`}
-        >
+        <TouchableOpacity className="flex-row items-center" onPress={() => setSortModalVisible(true)}>
           <Text>⇅ {activeSort}</Text>
         </TouchableOpacity>
       </View>
@@ -198,16 +149,11 @@ const ProductListingScreen = ({ route, navigation }) => {
         renderItem={renderProductItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        contentContainerStyle={styles.gridContainer}
+        contentContainerStyle={{ padding: 8 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loadingMore && <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>😞 Không có sản phẩm nào</Text>
-          </View>
-        }
-        // Performance Optimizations
+        ListFooterComponent={loadingMore && <ActivityIndicator size="large" color="#d9534f" className="my-5" />}
+        ListEmptyComponent={<View className="flex-1 justify-center items-center mt-24"><Text className="text-lg text-gray-600">😞 Không có sản phẩm nào</Text></View>}
         removeClippedSubviews={true}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
@@ -216,94 +162,42 @@ const ProductListingScreen = ({ route, navigation }) => {
       />
 
       {/* Filter Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={filterModalVisible}
-        onRequestClose={() => setFilterModalVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Bộ lọc</Text>
-            {/* Price Range */}
-            <Text style={styles.filterLabel}>Khoảng giá</Text>
-            <View style={styles.priceInputContainer}>
-              <TextInput
-                placeholder="Tối thiểu"
-                style={styles.priceInput}
-                keyboardType="numeric"
-                value={filters.priceMin}
-                onChangeText={(text) => setFilters({...filters, priceMin: text})}
-                accessibilityLabel="Minimum price input"
-              />
+      <Modal animationType="slide" transparent={true} visible={filterModalVisible} onRequestClose={() => setFilterModalVisible(false)}>
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className="bg-white rounded-xl p-5 w-[90%]">
+            <Text className="text-xl font-bold mb-5 text-center">Bộ lọc</Text>
+            <Text className="text-base font-semibold mt-4 mb-2.5">Khoảng giá</Text>
+            <View className="flex-row items-center">
+              <TextInput placeholder="Tối thiểu" className="flex-1 border border-gray-300 rounded-lg px-3 h-11" keyboardType="numeric" value={filters.priceMin} onChangeText={(text) => setFilters({...filters, priceMin: text})} />
               <Text> - </Text>
-              <TextInput
-                placeholder="Tối đa"
-                style={styles.priceInput}
-                keyboardType="numeric"
-                value={filters.priceMax}
-                onChangeText={(text) => setFilters({...filters, priceMax: text})}
-                accessibilityLabel="Maximum price input"
-              />
+              <TextInput placeholder="Tối đa" className="flex-1 border border-gray-300 rounded-lg px-3 h-11" keyboardType="numeric" value={filters.priceMax} onChangeText={(text) => setFilters({...filters, priceMax: text})} />
             </View>
-            {/* Categories */}
-            <Text style={styles.filterLabel}>Danh mục</Text>
+            <Text className="text-base font-semibold mt-4 mb-2.5">Danh mục</Text>
             {MOCK_CATEGORIES.map(cat => (
-              <TouchableOpacity
-                key={cat}
-                style={styles.checkboxContainer}
-                onPress={() => toggleCategoryFilter(cat)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: filters.selectedCategories.includes(cat) }}
-                accessibilityLabel={cat}
-              >
+              <TouchableOpacity key={cat} className="flex-row items-center py-2" onPress={() => toggleCategoryFilter(cat)}>
                 <Text>{filters.selectedCategories.includes(cat) ? '✅' : '⬜'}</Text>
-                <Text style={styles.checkboxLabel}>{cat}</Text>
+                <Text className="ml-3 text-base">{cat}</Text>
               </TouchableOpacity>
             ))}
-            {/* In Stock */}
-            <View style={styles.switchContainer}>
-                <Text style={styles.filterLabel}>Chỉ hiện sản phẩm còn hàng</Text>
-                <Switch
-                  value={filters.inStockOnly}
-                  onValueChange={(value) => setFilters({...filters, inStockOnly: value})}
-                  accessibilityLabel="Show in-stock products only"
-                  accessibilityState={{ checked: filters.inStockOnly }}
-                />
+            <View className="flex-row justify-between items-center mt-4">
+                <Text className="text-base font-semibold">Chỉ hiện sản phẩm còn hàng</Text>
+                <Switch value={filters.inStockOnly} onValueChange={(value) => setFilters({...filters, inStockOnly: value})} />
             </View>
-
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={handleApplyFilters}
-              accessibilityRole="button"
-              accessibilityLabel="Apply filters"
-            >
-                <Text style={styles.applyButtonText}>Áp dụng</Text>
+            <TouchableOpacity className="bg-primary rounded-lg p-3.5 mt-6 items-center" onPress={handleApplyFilters}>
+                <Text className="text-white text-base font-bold">Áp dụng</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       {/* Sort Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={sortModalVisible}
-        onRequestClose={() => setSortModalVisible(false)}
-      >
-        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPressOut={() => setSortModalVisible(false)}>
-          <View style={[styles.modalContent, styles.sortModal]}>
-            <Text style={styles.modalTitle}>Sắp xếp theo</Text>
+      <Modal animationType="fade" transparent={true} visible={sortModalVisible} onRequestClose={() => setSortModalVisible(false)}>
+        <TouchableOpacity className="flex-1 bg-black/50 justify-center items-center" activeOpacity={1} onPressOut={() => setSortModalVisible(false)}>
+          <View className="bg-white rounded-xl p-5 w-[80%]">
+            <Text className="text-xl font-bold mb-2 text-center">Sắp xếp theo</Text>
             {Object.values(SORT_OPTIONS).map(opt => (
-              <TouchableOpacity
-                key={opt}
-                style={styles.sortOption}
-                onPress={() => handleSelectSort(opt)}
-                accessibilityRole="button"
-                accessibilityLabel={`Sort by ${opt}`}
-                accessibilityState={{ selected: activeSort === opt }}
-              >
-                <Text style={[styles.sortOptionText, activeSort === opt && styles.sortOptionTextActive]}>{opt}</Text>
+              <TouchableOpacity key={opt} className="py-4 border-b border-gray-200" onPress={() => handleSelectSort(opt)}>
+                <Text className={`text-base text-center ${activeSort === opt ? 'text-primary font-bold' : ''}`}>{opt}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -312,167 +206,5 @@ const ProductListingScreen = ({ route, navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
-  },
-  toolbarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  gridContainer: {
-    padding: 8,
-  },
-  cardContainer: {
-    flex: 0.5,
-    margin: 8,
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    ...Platform.select({
-        ios: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-        },
-        android: {
-            elevation: 3,
-        },
-    }),
-  },
-  cardImage: {
-    width: '100%',
-    aspectRatio: 1,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-  },
-  cardName: {
-    fontSize: 14,
-    marginHorizontal: 8,
-    marginTop: 8,
-    color: COLORS.text,
-  },
-  cardPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginHorizontal: 8,
-    marginTop: 4,
-  },
-  cardActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    margin: 8,
-  },
-  addToCartBtn: {
-    backgroundColor: COLORS.primary,
-    padding: 6,
-    borderRadius: 15,
-  },
-  addToCartIcon: {
-      fontSize: 14,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 100,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: COLORS.darkGray,
-  },
-  // Modal Styles
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 20,
-    width: '90%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 15,
-    marginBottom: 10,
-  },
-  priceInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  priceInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 44,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  checkboxLabel: {
-    marginLeft: 12,
-    fontSize: 16,
-  },
-  switchContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: 15,
-  },
-  applyButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    padding: 14,
-    marginTop: 25,
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  sortModal: {
-      width: '80%',
-  },
-  sortOption: {
-      paddingVertical: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: '#e9ecef',
-  },
-  sortOptionText: {
-      fontSize: 16,
-      textAlign: 'center',
-  },
-  sortOptionTextActive: {
-      color: COLORS.primary,
-      fontWeight: 'bold',
-  },
-});
 
 export default ProductListingScreen;

@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import CartItem from '../components/CartItem';
-import { useTheme } from '../context/ThemeContext';
 
 // --- MOCK DATA ---
 const MOCK_CART_ITEMS = [
@@ -48,8 +45,6 @@ const formatCurrency = (value) => {
 
 // --- MAIN COMPONENT ---
 const CartScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const styles = getStyles(theme);
   const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
 
   const handleUpdateQuantity = useCallback((itemId, amount) => {
@@ -93,9 +88,9 @@ const CartScreen = ({ navigation }) => {
   ), [handleUpdateQuantity, handleRemoveItem]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Giỏ hàng ({cartItems.length})</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="p-m bg-card border-b border-border">
+        <Text className="text-2xl font-bold text-text text-center">Giỏ hàng ({cartItems.length})</Text>
       </View>
       
       {cartItems.length === 0 ? <EmptyCart onShopNow={navigateToHome} /> : (
@@ -104,7 +99,7 @@ const CartScreen = ({ navigation }) => {
                 data={cartItems}
                 renderItem={renderCartItem}
                 keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
+                contentContainerStyle={{ padding: 16 }} // p-m
                 showsVerticalScrollIndicator={false}
             />
             <CartSummary subtotal={subtotal} total={total} onCheckout={handleCheckout} />
@@ -115,155 +110,51 @@ const CartScreen = ({ navigation }) => {
 };
 
 const EmptyCart = React.memo(({ onShopNow }) => {
-  const { theme } = useTheme();
-  const styles = getStyles(theme);
   return (
-    <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>🛒</Text>
-        <Text style={styles.emptyTitle}>Giỏ hàng của bạn đang trống</Text>
-        <Text style={styles.emptySubtitle}>Hãy bắt đầu mua sắm ngay thôi!</Text>
+    <View className="flex-1 justify-center items-center p-l">
+        <Text className="text-8xl mb-l">🛒</Text>
+        <Text className="text-xl font-bold text-text">Giỏ hàng của bạn đang trống</Text>
+        <Text className="text-base text-textSecondary mt-s mb-l text-center">Hãy bắt đầu mua sắm ngay thôi!</Text>
         <TouchableOpacity
-          style={styles.shopNowButton}
+          className="bg-primary px-xl py-m rounded-full"
           onPress={onShopNow}
           accessibilityRole="button"
           accessibilityLabel="Shop now"
           accessibilityHint="Double tap to start shopping"
         >
-            <Text style={styles.shopNowButtonText}>Mua sắm ngay</Text>
+            <Text className="text-base text-card font-bold">Mua sắm ngay</Text>
         </TouchableOpacity>
     </View>
   );
 });
 
 const CartSummary = React.memo(({ subtotal, total, onCheckout }) => {
-  const { theme } = useTheme();
-  const styles = getStyles(theme);
   return (
-    <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tạm tính</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
+    <View className="bg-card p-m border-t border-border">
+        <View className="flex-row justify-between mb-m">
+            <Text className="text-base text-textSecondary">Tạm tính</Text>
+            <Text className="text-base text-text">{formatCurrency(subtotal)}</Text>
         </View>
-        <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Phí vận chuyển</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(SHIPPING_FEE)}</Text>
+        <View className="flex-row justify-between mb-m">
+            <Text className="text-base text-textSecondary">Phí vận chuyển</Text>
+            <Text className="text-base text-text">{formatCurrency(SHIPPING_FEE)}</Text>
         </View>
-        <View style={styles.separator} />
-        <View style={styles.summaryRow}>
-            <Text style={styles.summaryTotalLabel}>Tổng cộng</Text>
-            <Text style={styles.summaryTotalValue}>{formatCurrency(total)}</Text>
+        <View className="h-px bg-border my-s" />
+        <View className="flex-row justify-between items-center">
+            <Text className="text-xl font-bold text-text">Tổng cộng</Text>
+            <Text className="text-2xl font-bold text-primary">{formatCurrency(total)}</Text>
         </View>
         <TouchableOpacity
-          style={styles.checkoutButton}
+          className="bg-primary rounded-s py-m items-center mt-m"
           onPress={onCheckout}
           accessibilityRole="button"
           accessibilityLabel="Proceed to checkout"
           accessibilityHint={`Double tap to proceed to checkout. Total amount is ${formatCurrency(total)}`}
         >
-            <Text style={styles.checkoutButtonText}>Tiến hành thanh toán</Text>
+            <Text className="text-base text-card font-bold">Tiến hành thanh toán</Text>
         </TouchableOpacity>
     </View>
   );
-});
-
-// --- STYLESHEET ---
-const getStyles = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    padding: theme.spacing.m,
-    backgroundColor: theme.colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  headerTitle: {
-    ...theme.typography.h2,
-    color: theme.colors.text,
-    textAlign: 'center',
-  },
-  listContainer: {
-    padding: theme.spacing.m,
-  },
-  // Empty State
-  emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.l,
-  },
-  emptyIcon: {
-      fontSize: 80,
-      marginBottom: theme.spacing.l,
-  },
-  emptyTitle: {
-      ...theme.typography.h3,
-      color: theme.colors.text,
-  },
-  emptySubtitle: {
-      ...theme.typography.body,
-      color: theme.colors.textSecondary,
-      marginTop: theme.spacing.s,
-      marginBottom: theme.spacing.l,
-      textAlign: 'center',
-  },
-  shopNowButton: {
-      backgroundColor: theme.colors.primary,
-      paddingHorizontal: theme.spacing.xl,
-      paddingVertical: theme.spacing.m,
-      borderRadius: 30,
-  },
-  shopNowButtonText: {
-      ...theme.typography.body,
-      color: theme.colors.card,
-      fontWeight: 'bold',
-  },
-  // Summary Footer
-  summaryContainer: {
-    backgroundColor: theme.colors.card,
-    padding: theme.spacing.m,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing.m,
-  },
-  summaryLabel: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-  },
-  summaryValue: {
-    ...theme.typography.body,
-    color: theme.colors.text,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    marginVertical: theme.spacing.s,
-  },
-  summaryTotalLabel: {
-    ...theme.typography.h3,
-    color: theme.colors.text,
-  },
-  summaryTotalValue: {
-    ...theme.typography.h2,
-    color: theme.colors.primary,
-  },
-  checkoutButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.spacing.s,
-    paddingVertical: theme.spacing.m,
-    alignItems: 'center',
-    marginTop: theme.spacing.m,
-  },
-  checkoutButtonText: {
-    ...theme.typography.body,
-    color: theme.colors.card,
-    fontWeight: 'bold',
-  },
 });
 
 export default CartScreen;

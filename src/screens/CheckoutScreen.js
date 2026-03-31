@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -41,15 +40,6 @@ const MOCK_DATA = {
 
 const SHIPPING_FEE = 30000;
 
-const COLORS = {
-  primary: '#007bff',
-  secondary: '#6c757d',
-  background: '#f8f9fa',
-  white: '#ffffff',
-  text: '#343a40',
-  success: '#28a745',
-};
-
 // --- HELPER FUNCTIONS ---
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -83,30 +73,30 @@ const CheckoutScreen = ({ navigation }) => {
   };
 
   const renderSection = (title, icon, children) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionIcon}>{icon}</Text>
-        <Text style={styles.sectionTitle}>{title}</Text>
+    <View className="bg-white mx-3 mt-3 p-4 rounded-xl shadow">
+      <View className="flex-row items-center border-b border-gray-200 pb-3 mb-3">
+        <Text className="text-xl mr-2.5">{icon}</Text>
+        <Text className="text-lg font-bold text-text">{title}</Text>
       </View>
       {children}
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-1">
         {/* Shipping Address */}
         {renderSection('Địa chỉ nhận hàng', '📍', (
           <View>
-            <Text style={styles.addressName}>{MOCK_DATA.shippingAddress.name} | {MOCK_DATA.shippingAddress.phone}</Text>
-            <Text style={styles.addressText}>{MOCK_DATA.shippingAddress.address}</Text>
+            <Text className="text-base font-semibold mb-1">{MOCK_DATA.shippingAddress.name} | {MOCK_DATA.shippingAddress.phone}</Text>
+            <Text className="text-[15px] text-gray-600 leading-snug">{MOCK_DATA.shippingAddress.address}</Text>
             <TouchableOpacity
-              style={styles.changeButton}
+              className="absolute top-0 right-0"
               accessibilityRole="button"
               accessibilityLabel="Change shipping address"
               accessibilityHint="Double tap to change your shipping address"
             >
-                <Text style={styles.changeButtonText}>Thay đổi</Text>
+                <Text className="text-primary text-[15px] font-semibold">Thay đổi</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -115,18 +105,18 @@ const CheckoutScreen = ({ navigation }) => {
         {renderSection('Sản phẩm', '📦', (
           <View>
             {MOCK_DATA.cartItems.map(item => (
-              <View key={item.id} style={styles.itemContainer}>
+              <View key={item.id} className="flex-row items-center mb-3">
                 <Image
                   source={{ uri: item.imageUrl }}
-                  style={styles.itemImage}
+                  className="w-[50px] h-[50px] rounded-lg mr-3"
                   accessibilityRole="image"
                   accessibilityLabel={`Image of ${item.name}`}
                 />
-                <View style={styles.itemDetails}>
-                  <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
+                <View className="flex-1">
+                  <Text className="text-[15px] text-text" numberOfLines={1}>{item.name}</Text>
+                  <Text className="text-sm text-gray-600 mt-1">Số lượng: {item.quantity}</Text>
                 </View>
-                <Text style={styles.itemPrice}>{formatCurrency(item.price * item.quantity)}</Text>
+                <Text className="text-[15px] font-semibold">{formatCurrency(item.price * item.quantity)}</Text>
               </View>
             ))}
           </View>
@@ -134,15 +124,15 @@ const CheckoutScreen = ({ navigation }) => {
 
         {/* Payment Method */}
         {renderSection('Phương thức thanh toán', '💳', (
-            <View style={styles.paymentContainer}>
-                <Text style={styles.paymentText}>{MOCK_DATA.paymentMethod.description}</Text>
+            <View className="flex-row justify-between items-center">
+                <Text className="text-base text-text">{MOCK_DATA.paymentMethod.description}</Text>
                 <TouchableOpacity
-                  style={styles.changeButton}
+                  className="absolute top-0 right-0"
                   accessibilityRole="button"
                   accessibilityLabel="Change payment method"
                   accessibilityHint="Double tap to change your payment method"
                 >
-                    <Text style={styles.changeButtonText}>Thay đổi</Text>
+                    <Text className="text-primary text-[15px] font-semibold">Thay đổi</Text>
                 </TouchableOpacity>
             </View>
         ))}
@@ -150,167 +140,31 @@ const CheckoutScreen = ({ navigation }) => {
       </ScrollView>
       
       {/* Footer with Totals and Place Order Button */}
-      <View style={styles.footer}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tạm tính</Text>
-          <Text style={styles.totalValue}>{formatCurrency(subtotal)}</Text>
+      <View className="bg-white p-4 border-t border-gray-300 pb-8">
+        <View className="flex-row justify-between mb-2">
+          <Text className="text-base text-gray-600">Tạm tính</Text>
+          <Text className="text-base text-text">{formatCurrency(subtotal)}</Text>
         </View>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Phí vận chuyển</Text>
-          <Text style={styles.totalValue}>{formatCurrency(SHIPPING_FEE)}</Text>
+        <View className="flex-row justify-between mb-2">
+          <Text className="text-base text-gray-600">Phí vận chuyển</Text>
+          <Text className="text-base text-text">{formatCurrency(SHIPPING_FEE)}</Text>
         </View>
-        <View style={styles.totalRow}>
-          <Text style={styles.finalTotalLabel}>Tổng cộng</Text>
-          <Text style={styles.finalTotalValue}>{formatCurrency(total)}</Text>
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg font-bold text-text">Tổng cộng</Text>
+          <Text className="text-xl font-bold text-primary">{formatCurrency(total)}</Text>
         </View>
         <TouchableOpacity
-          style={styles.placeOrderButton}
+          className="bg-primary rounded-lg py-4 items-center mt-4"
           onPress={handlePlaceOrder}
           accessibilityRole="button"
           accessibilityLabel="Place order"
           accessibilityHint={`Double tap to place your order. Total amount is ${formatCurrency(total)}`}
         >
-          <Text style={styles.placeOrderButtonText}>Đặt hàng</Text>
+          <Text className="text-white text-lg font-bold">Đặt hàng</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: 12,
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 12,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    paddingBottom: 12,
-    marginBottom: 12,
-  },
-  sectionIcon: {
-      fontSize: 20,
-      marginRight: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  // Address
-  addressName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  addressText: {
-    fontSize: 15,
-    color: COLORS.secondary,
-    lineHeight: 22,
-  },
-  changeButton: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-  },
-  changeButtonText: {
-      color: COLORS.primary,
-      fontSize: 15,
-      fontWeight: '600'
-  },
-  // Order Item
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  itemImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  itemQuantity: {
-    fontSize: 13,
-    color: COLORS.secondary,
-    marginTop: 4,
-  },
-  itemPrice: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  // Payment
-  paymentContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-  },
-  paymentText: {
-      fontSize: 16,
-      color: COLORS.text,
-  },
-  // Footer
-  footer: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingBottom: 30, // For notch
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  totalLabel: {
-    fontSize: 16,
-    color: COLORS.secondary,
-  },
-  totalValue: {
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  finalTotalLabel: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  finalTotalValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  placeOrderButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  placeOrderButtonText: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default CheckoutScreen;

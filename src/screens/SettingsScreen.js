@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   SectionList,
@@ -9,15 +8,6 @@ import {
   Switch,
   Alert,
 } from 'react-native';
-
-const COLORS = {
-  primary: '#007bff',
-  background: '#f2f2f7',
-  white: '#ffffff',
-  text: '#000000',
-  secondaryText: '#8e8e93',
-  separator: '#c6c6c8',
-};
 
 // --- MOCK DATA for SectionList ---
 const SETTINGS_DATA = [
@@ -67,101 +57,46 @@ const SettingsScreen = ({ navigation }) => {
     };
 
   const renderItem = ({ item }) => {
-    switch (item.type) {
-      case 'navigate':
+    const itemContent = (
+        <>
+            <Text className="text-base text-black">{item.label}</Text>
+            {item.type === 'navigate' && <Text className="text-xl text-gray-300">›</Text>}
+            {item.type === 'action' && <Text className="text-xl text-gray-300">›</Text>}
+            {item.type === 'switch' && <Switch value={settings[item.key]} onValueChange={() => toggleSwitch(item.key)} />}
+            {item.type === 'info' && <Text className="text-base text-gray-500">{item.value}</Text>}
+        </>
+    );
+    
+    const commonClasses = "bg-white flex-row items-center justify-between py-3 px-4";
+
+    if (item.type === 'navigate' || item.type === 'action') {
+        const action = item.screen ? () => navigation.navigate(item.screen) : item.action;
         return (
-          <TouchableOpacity 
-            style={styles.item} 
-            onPress={() => item.screen && navigation.navigate(item.screen)}
-          >
-            <Text style={styles.itemLabel}>{item.label}</Text>
-            <Text style={styles.itemAccessory}>›</Text>
-          </TouchableOpacity>
+            <TouchableOpacity className={commonClasses} onPress={action}>
+                {itemContent}
+            </TouchableOpacity>
         );
-      case 'action':
-        return (
-          <TouchableOpacity style={styles.item} onPress={item.action}>
-            <Text style={styles.itemLabel}>{item.label}</Text>
-            <Text style={styles.itemAccessory}>›</Text>
-          </TouchableOpacity>
-        );
-      case 'switch':
-        return (
-          <View style={styles.item}>
-            <Text style={styles.itemLabel}>{item.label}</Text>
-            <Switch
-              value={settings[item.key]}
-              onValueChange={() => toggleSwitch(item.key)}
-            />
-          </View>
-        );
-      case 'info':
-        return (
-            <View style={styles.item}>
-                <Text style={styles.itemLabel}>{item.label}</Text>
-                <Text style={styles.itemInfoText}>{item.value}</Text>
-            </View>
-        );
-      default:
-        return null;
     }
+    
+    return <View className={commonClasses}>{itemContent}</View>;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-gray-100">
       <SectionList
         sections={SETTINGS_DATA}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title.toUpperCase()}</Text>
+          <Text className="pl-4 pb-1.5 text-gray-500 text-xs font-semibold">{title.toUpperCase()}</Text>
         )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        SectionSeparatorComponent={() => <View style={{ height: 30 }} />}
-        ListFooterComponent={<View style={{ height: 30 }} />}
+        ItemSeparatorComponent={() => <View className="h-px bg-gray-300 ml-4" />}
+        SectionSeparatorComponent={() => <View className="h-8" />}
+        ListFooterComponent={<View className="h-8" />}
         stickySectionHeadersEnabled={false}
       />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  sectionHeader: {
-    paddingLeft: 16,
-    paddingBottom: 6,
-    color: COLORS.secondaryText,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  item: {
-    backgroundColor: COLORS.white,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  itemLabel: {
-    fontSize: 17,
-    color: COLORS.text,
-  },
-  itemAccessory: {
-    fontSize: 20,
-    color: COLORS.separator,
-  },
-  itemInfoText: {
-    fontSize: 17,
-    color: COLORS.secondaryText,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: COLORS.separator,
-    marginLeft: 16,
-  },
-});
 
 export default SettingsScreen;

@@ -21,6 +21,9 @@ import OrderHistoryScreen from './src/screens/OrderHistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ProductListingScreen from './src/screens/ProductListingScreen';
 
+//styling
+import "./global.css"
+
 // Định nghĩa kiểu cho Stack Navigator
 type RootStackParamList = {
   MainTabs: undefined;

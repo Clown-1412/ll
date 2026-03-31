@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button } from 'react-native';
 
 interface Props { children: ReactNode; }
 interface State { hasError: boolean; error: Error | null; }
@@ -27,9 +27,9 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <View style={styles.container}>
-          <Text style={styles.title}>Rất tiếc, đã có lỗi xảy ra!</Text>
-          <Text style={styles.message}>
+        <View className="flex-1 justify-center items-center p-5">
+          <Text className="text-xl font-bold mb-2.5">Rất tiếc, đã có lỗi xảy ra!</Text>
+          <Text className="text-sm text-red-500 mb-5 text-center">
             {this.state.error?.message || 'Lỗi không xác định'}
           </Text>
           <Button title="Thử lại" onPress={this.handleReset} />
@@ -39,9 +39,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  message: { fontSize: 14, color: 'red', marginBottom: 20, textAlign: 'center' },
-});

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Text, StyleSheet, View, SafeAreaView } from 'react-native';
+import { FlatList, Text, View, SafeAreaView } from 'react-native';
 
 const NumberListDemo = () => {
   // Tạo mảng dữ liệu gồm 100 phần tử {id: '0', title: 'Item 0', ...}
@@ -9,13 +9,13 @@ const NumberListDemo = () => {
   }));
 
   const renderItem = ({ item }: { item: { title: string } }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.itemText}>{item.title}</Text>
+    <View className="p-5 border-b border-gray-300">
+      <Text className="text-base">{item.title}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1">
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -25,15 +25,5 @@ const NumberListDemo = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  itemContainer: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  itemText: { fontSize: 16 },
-});
 
 export default NumberListDemo;

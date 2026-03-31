@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   FlatList,
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 
 // --- MOCK DATA ---
@@ -44,14 +42,6 @@ const MOCK_FAVORITES = [
   },
 ];
 
-const COLORS = {
-  primary: '#007bff',
-  background: '#f8f9fa',
-  white: '#ffffff',
-  text: '#343a40',
-  red: '#dc3545',
-};
-
 // --- HELPER FUNCTIONS ---
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -67,7 +57,7 @@ const FavoritesScreen = ({ navigation }) => {
 
   const renderFavoriteItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.cardContainer}
+      className="flex-1 m-2 bg-white rounded-xl shadow-lg"
       onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
       accessibilityRole="button"
       accessibilityLabel={item.name}
@@ -75,14 +65,14 @@ const FavoritesScreen = ({ navigation }) => {
     >
       <Image
         source={{ uri: item.imageUrl }}
-        style={styles.cardImage}
+        className="w-full aspect-square rounded-t-xl"
         accessibilityRole="image"
         accessibilityLabel={`Image of ${item.name}`}
       />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
-        <View style={styles.cardFooter}>
-            <Text style={styles.cardPrice}>{formatCurrency(item.price)}</Text>
+      <View className="p-3 flex-1 justify-between">
+        <Text className="text-sm text-text mb-2" numberOfLines={2}>{item.name}</Text>
+        <View className="flex-row justify-between items-center mt-auto">
+            <Text className="text-base font-bold text-primary flex-1">{formatCurrency(item.price)}</Text>
             <TouchableOpacity
               onPress={() => handleUnfavorite(item.id)}
               accessibilityRole="button"
@@ -90,7 +80,7 @@ const FavoritesScreen = ({ navigation }) => {
               accessibilityHint={`Double tap to remove ${item.name} from your favorites`}
               accessibilityState={{ selected: true }}
             >
-                <Text style={styles.favoriteIcon}>❤️</Text>
+                <Text className="text-2xl text-red-500">❤️</Text>
             </TouchableOpacity>
         </View>
       </View>
@@ -98,144 +88,37 @@ const FavoritesScreen = ({ navigation }) => {
   );
 
   const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>💔</Text>
-        <Text style={styles.emptyTitle}>Chưa có sản phẩm yêu thích</Text>
-        <Text style={styles.emptySubtitle}>Hãy lướt và thả tim cho sản phẩm bạn thích nhé!</Text>
+    <View className="flex-1 justify-center items-center p-5 mt-[30%]">
+        <Text className="text-8xl mb-5">💔</Text>
+        <Text className="text-xl font-bold text-text">Chưa có sản phẩm yêu thích</Text>
+        <Text className="text-base text-gray-600 mt-2 mb-6 text-center">Hãy lướt và thả tim cho sản phẩm bạn thích nhé!</Text>
         <TouchableOpacity
-          style={styles.shopNowButton}
+          className="bg-primary px-10 py-3 rounded-full"
           onPress={() => navigation.navigate('Home')}
           accessibilityRole="button"
           accessibilityLabel="Start shopping"
           accessibilityHint="Double tap to go to the home screen and start shopping"
         >
-            <Text style={styles.shopNowButtonText}>Bắt đầu mua sắm</Text>
+            <Text className="text-white text-base font-bold">Bắt đầu mua sắm</Text>
         </TouchableOpacity>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sản phẩm yêu thích</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="p-4 bg-white border-b border-gray-300">
+        <Text className="text-2xl font-bold text-text text-center">Sản phẩm yêu thích</Text>
       </View>
       <FlatList
         data={favorites}
         renderItem={renderFavoriteItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        contentContainerStyle={styles.gridContainer}
+        contentContainerStyle={{ padding: 8 }}
         ListEmptyComponent={renderEmptyState}
       />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  gridContainer: {
-    padding: 8,
-  },
-  // Empty State
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    marginTop: '30%',
-  },
-  emptyIcon: {
-      fontSize: 80,
-      marginBottom: 20,
-  },
-  emptyTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: COLORS.text,
-  },
-  emptySubtitle: {
-      fontSize: 16,
-      color: '#6c757d',
-      marginTop: 8,
-      marginBottom: 24,
-      textAlign: 'center',
-  },
-  shopNowButton: {
-      backgroundColor: COLORS.primary,
-      paddingHorizontal: 40,
-      paddingVertical: 12,
-      borderRadius: 30,
-  },
-  shopNowButtonText: {
-      color: COLORS.white,
-      fontSize: 16,
-      fontWeight: 'bold',
-  },
-  // Favorite Item Card
-  cardContainer: {
-    flex: 0.5,
-    margin: 8,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    ...Platform.select({
-        ios: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 5,
-        },
-        android: {
-            elevation: 4,
-        },
-    }),
-  },
-  cardImage: {
-    width: '100%',
-    aspectRatio: 1,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  cardContent: {
-      padding: 12,
-      flex: 1,
-      justifyContent: 'space-between',
-  },
-  cardName: {
-    fontSize: 14,
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  cardPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    flex: 1, // Allow price to take up space
-  },
-  favoriteIcon: {
-      fontSize: 24,
-      color: COLORS.red,
-  },
-});
 
 export default FavoritesScreen;

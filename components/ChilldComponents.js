@@ -1,23 +1,14 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, TextInput} from 'react-native';
+import {View, Text, TouchableOpacity, TextInput} from 'react-native';
 import { useState } from 'react';
 
 const ChilldComponents = ({counter}) => {
 
     return (
-        <View style={styles.ChilldComponents}>
+        <View className="bg-blue-200 p-[10px] m-[10px] rounded-[5px]">
             <Text>Chilld Component Counter: {counter}</Text>
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    ChilldComponents: {
-        backgroundColor: 'lightblue',
-        padding: 10,
-        margin: 10,
-        borderRadius: 5,
-    },
-});
 
 export default ChilldComponents;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   Image,
@@ -11,7 +10,6 @@ import {
   KeyboardAvoidingView,
   SafeAreaView,
   Platform,
-  StatusBar,
   Modal,
   Alert,
   ActivityIndicator
@@ -55,9 +53,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleSave = () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -66,205 +62,108 @@ export default function ProfileScreen({ navigation }) {
     }, 1500);
   };
 
-  const handleLogout = () => {
-    setModalVisible(true);
-  };
+  const handleLogout = () => setModalVisible(true);
 
   const handleConfirmLogout = () => {
     setModalVisible(false);
-    // reset profile data to default/empty state for logout
     setName('');
     setEmail('');
     setPhone('');
     setAddress('');
     setIsNotiEnabled(false);
     setIsPublicEmail(false);
-
-    // reset navigation stack to main entry point so user is effectively logged out
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainTabs' }],
-    });
-
+    navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     Alert.alert('Đã đăng xuất', 'Bạn đã đăng xuất thành công.');
   };
 
+  const renderSettingItem = ({ item }) => (
+    <TouchableOpacity
+      key={item.id}
+      className="flex-row items-center py-4 border-b border-gray-200"
+      onPress={item.action}
+    >
+      <Text className="text-xl mr-4">{item.icon}</Text>
+      <Text className="flex-1 text-base text-text">{item.title}</Text>
+      <Text className="text-xl text-gray-400">›</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f4f4f4" />
-      
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
           
-          <View style={styles.header}>
-            <Image 
-              source={require('../img/avatar.png')}
-              style={styles.avatar}
-              accessibilityRole="image"
-              accessibilityLabel="User avatar"
-            />
-            <Text style={styles.nameText}>{name}</Text>
-            <Text style={styles.emailText}>{email}</Text>
-            {!isEditing && <Text style={styles.bioText}>Lập trình viên React Native</Text>}
+          <View className="items-center mb-5">
+            <Image source={require('../img/avatar.png')} className="w-24 h-24 rounded-full mb-4" />
+            <Text className="text-2xl font-bold text-text">{name}</Text>
+            <Text className="text-base text-gray-600 mt-1">{email}</Text>
+            {!isEditing && <Text className="text-sm text-gray-500 mt-1 italic">Lập trình viên React Native</Text>}
           </View>
 
           {isEditing ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Chỉnh sửa thông tin</Text>
+            <View className="bg-white rounded-xl p-4 mb-5 shadow-md">
+              <Text className="text-lg font-bold mb-4 text-text">Chỉnh sửa thông tin</Text>
               
-              <Text style={styles.inputLabel}>Họ và tên</Text>
-              <TextInput 
-                style={[styles.input, errors.name && styles.inputError]} 
-                value={name} 
-                onChangeText={setName} 
-                placeholder="Nhập họ và tên" 
-                accessibilityLabel="Name input"
-                accessibilityHint="Input for your full name"
-              />
-              {errors.name && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.name}</Text>}
+              <Text className="text-base text-text mb-1 font-semibold">Họ và tên</Text>
+              <TextInput className={`border rounded-lg p-3 mb-1 text-base ${errors.name ? 'border-red-500' : 'border-gray-300'}`} value={name} onChangeText={setName} placeholder="Nhập họ và tên" />
+              {errors.name && <Text className="text-red-500 text-sm mb-2.5">{errors.name}</Text>}
               
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput 
-                style={[styles.input, errors.email && styles.inputError]} 
-                value={email} 
-                onChangeText={setEmail} 
-                placeholder="Nhập email" 
-                keyboardType="email-address" 
-                accessibilityLabel="Email input"
-                accessibilityHint="Input for your email address"
-              />
-              {errors.email && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.email}</Text>}
+              <Text className="text-base text-text mb-1 font-semibold">Email</Text>
+              <TextInput className={`border rounded-lg p-3 mb-1 text-base ${errors.email ? 'border-red-500' : 'border-gray-300'}`} value={email} onChangeText={setEmail} placeholder="Nhập email" keyboardType="email-address" />
+              {errors.email && <Text className="text-red-500 text-sm mb-2.5">{errors.email}</Text>}
 
-              <Text style={styles.inputLabel}>Số điện thoại</Text>
-              <TextInput 
-                style={[styles.input, errors.phone && styles.inputError]} 
-                value={phone} 
-                onChangeText={setPhone} 
-                placeholder="Nhập số điện thoại" 
-                keyboardType="phone-pad" 
-                accessibilityLabel="Phone number input"
-                accessibilityHint="Input for your phone number"
-              />
-              {errors.phone && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.phone}</Text>}
+              <Text className="text-base text-text mb-1 font-semibold">Số điện thoại</Text>
+              <TextInput className={`border rounded-lg p-3 mb-1 text-base ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} value={phone} onChangeText={setPhone} placeholder="Nhập số điện thoại" keyboardType="phone-pad" />
+              {errors.phone && <Text className="text-red-500 text-sm mb-2.5">{errors.phone}</Text>}
               
-              <Text style={styles.inputLabel}>Địa chỉ</Text>
-              <TextInput 
-                style={[styles.input, errors.address && styles.inputError]} 
-                value={address} 
-                onChangeText={setAddress} 
-                placeholder="Nhập địa chỉ" 
-                accessibilityLabel="Address input"
-                accessibilityHint="Input for your address"
-              />
-              {errors.address && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{errors.address}</Text>}
+              <Text className="text-base text-text mb-1 font-semibold">Địa chỉ</Text>
+              <TextInput className={`border rounded-lg p-3 mb-1 text-base ${errors.address ? 'border-red-500' : 'border-gray-300'}`} value={address} onChangeText={setAddress} placeholder="Nhập địa chỉ" />
+              {errors.address && <Text className="text-red-500 text-sm mb-2.5">{errors.address}</Text>}
 
-              <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Nhận thông báo</Text>
-                <Switch
-                  value={isNotiEnabled}
-                  onValueChange={setIsNotiEnabled}
-                  accessibilityLabel="Enable notifications toggle"
-                  accessibilityState={{ checked: isNotiEnabled }}
-                  accessibilityHint={isNotiEnabled ? "Double tap to disable notifications" : "Double tap to enable notifications"}
-                />
+              <View className="flex-row justify-between items-center py-2.5 border-b border-gray-200">
+                <Text className="text-base text-text">Nhận thông báo</Text>
+                <Switch value={isNotiEnabled} onValueChange={setIsNotiEnabled} />
               </View>
-              <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Hiển thị email công khai</Text>
-                <Switch
-                  value={isPublicEmail}
-                  onValueChange={setIsPublicEmail}
-                  accessibilityLabel="Show email publicly toggle"
-                  accessibilityState={{ checked: isPublicEmail }}
-                  accessibilityHint={isPublicEmail ? "Double tap to hide your email" : "Double tap to show your email publicly"}
-                />
+              <View className="flex-row justify-between items-center py-2.5">
+                <Text className="text-base text-text">Hiển thị email công khai</Text>
+                <Switch value={isPublicEmail} onValueChange={setIsPublicEmail} />
               </View>
 
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.button, styles.saveBtn]}
-                  onPress={handleSave}
-                  accessibilityRole="button"
-                  accessibilityLabel="Save changes"
-                  accessibilityHint="Double tap to save your profile changes"
-                >
-                  <Text style={styles.btnTextSave}>Lưu thay đổi</Text>
+              <View className="flex-row justify-between mt-5">
+                <TouchableOpacity className="flex-1 p-4 rounded-lg items-center mx-1 bg-primary" onPress={handleSave}>
+                  <Text className="text-white text-base font-bold">Lưu thay đổi</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelBtn]}
-                  onPress={() => setIsEditing(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Cancel editing"
-                  accessibilityHint="Double tap to discard your changes and go back"
-                >
-                  <Text style={styles.btnTextCancel}>Hủy</Text>
+                <TouchableOpacity className="flex-1 p-4 rounded-lg items-center mx-1 bg-gray-100 border border-gray-300" onPress={() => setIsEditing(false)}>
+                  <Text className="text-gray-600 text-base font-bold">Hủy</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
             <>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Cài đặt</Text>
-                {settingsList.map((item) => (
-                  <TouchableOpacity 
-                    key={item.id} 
-                    style={styles.settingItem}
-                    onPress={item.action}
-                    accessibilityRole="button"
-                    accessibilityLabel={item.title}
-                    accessibilityHint={`Double tap to go to ${item.title}`}
-                  >
-                    <Text style={styles.settingIcon}>{item.icon}</Text>
-                    <Text style={styles.settingTitle}>{item.title}</Text>
-                    <Text style={styles.settingArrow}>›</Text>
-                  </TouchableOpacity>
-                ))}
+              <View className="bg-white rounded-xl p-4 mb-5 shadow-md">
+                <Text className="text-lg font-bold mb-2 text-text">Cài đặt</Text>
+                {settingsList.map(renderSettingItem)}
               </View>
 
-              <TouchableOpacity
-                style={styles.mainLogoutBtn}
-                onPress={handleLogout}
-                accessibilityRole="button"
-                accessibilityLabel="Logout"
-                accessibilityHint="Double tap to logout from your account"
-              >
-                <Text style={styles.mainLogoutText}>Đăng xuất</Text>
+              <TouchableOpacity className="bg-white p-4 rounded-xl items-center mb-8 border border-red-500" onPress={handleLogout}>
+                <Text className="text-red-500 text-base font-bold">Đăng xuất</Text>
               </TouchableOpacity>
             </>
           )}
-
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-        accessibilityViewIsModal={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Xác nhận</Text>
-            <Text style={styles.modalText}>Bạn có chắc chắn muốn đăng xuất không?</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalBtn}
-                onPress={() => setModalVisible(false)}
-                accessibilityRole="button"
-                accessibilityLabel="Cancel logout"
-              >
-                <Text style={styles.modalBtnText}>Hủy</Text>
+      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className="bg-white w-[80%] rounded-xl p-5 items-center">
+            <Text className="text-xl font-bold mb-2.5">Xác nhận</Text>
+            <Text className="text-base text-center text-gray-600 mb-5">Bạn có chắc chắn muốn đăng xuất không?</Text>
+            <View className="flex-row justify-between w-full">
+              <TouchableOpacity className="flex-1 p-3 rounded-lg items-center mx-1 bg-gray-200" onPress={() => setModalVisible(false)}>
+                <Text className="text-base font-bold text-text">Hủy</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalBtn, styles.modalBtnConfirm]}
-                onPress={handleConfirmLogout}
-                accessibilityRole="button"
-                accessibilityLabel="Confirm logout"
-              >
-                <Text style={[styles.modalBtnText, {color: '#ffffff'}]}>Đăng xuất</Text>
+              <TouchableOpacity className="flex-1 p-3 rounded-lg items-center mx-1 bg-red-500" onPress={handleConfirmLogout}>
+                <Text className="text-base font-bold text-white">Đăng xuất</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -272,76 +171,11 @@ export default function ProfileScreen({ navigation }) {
       </Modal>
 
       {isLoading && (
-        <View 
-          style={styles.loadingOverlay}
-          accessibilityViewIsModal={true}
-          accessibilityLiveRegion="polite"
-        >
-          <ActivityIndicator size="large" color="#0066cc" />
-          <Text style={styles.loadingText}>Đang lưu thay đổi...</Text>
+        <View className="absolute inset-0 bg-white/80 justify-center items-center">
+          <ActivityIndicator size="large" color="#d9534f" />
+          <Text className="mt-2.5 text-base text-primary font-bold">Đang lưu thay đổi...</Text>
         </View>
       )}
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f4f4f4' },
-  container: { flex: 1 },
-  scrollContent: { padding: 20 },
-  header: { alignItems: 'center', marginBottom: 20 },
-  avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 15 },
-  nameText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  emailText: { fontSize: 16, color: '#666', marginTop: 5 },
-  bioText: { fontSize: 14, color: '#888', marginTop: 5, fontStyle: 'italic' },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-      android: { elevation: 3 },
-    }),
-  },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
-  inputLabel: { fontSize: 16, color: '#333', marginBottom: 5, fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 5, fontSize: 16 },
-  inputError: { borderColor: '#ff3b30' },
-  errorText: { color: '#ff3b30', fontSize: 14, marginBottom: 10, },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  switchLabel: { fontSize: 16, color: '#333' },
-  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  button: { flex: 1, padding: 15, borderRadius: 8, alignItems: 'center', marginHorizontal: 5 },
-  saveBtn: { backgroundColor: '#0066cc' },
-  cancelBtn: { backgroundColor: '#f4f4f4', borderWidth: 1, borderColor: '#ddd' },
-  btnTextSave: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  btnTextCancel: { color: '#666', fontSize: 16, fontWeight: 'bold' },
-  
-  settingItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  settingIcon: { fontSize: 20, marginRight: 15 },
-  settingTitle: { flex: 1, fontSize: 16, color: '#333' },
-  settingArrow: { fontSize: 20, color: '#ccc' },
-  
-  mainLogoutBtn: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: '#ff3b30',
-  },
-  mainLogoutText: { color: '#ff3b30', fontSize: 16, fontWeight: 'bold' },
-
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: '#fff', width: '80%', borderRadius: 12, padding: 20, alignItems: 'center' },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  modalText: { fontSize: 16, textAlign: 'center', color: '#666', marginBottom: 20 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  modalBtn: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 5, backgroundColor: '#eee' },
-  modalBtnConfirm: { backgroundColor: '#ff3b30' },
-  modalBtnText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.8)', justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#0066cc', fontWeight: 'bold' }
-});
